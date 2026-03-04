@@ -19,8 +19,9 @@ class HandTracker(context: Context, private val listener: HandTrackerListener) {
         val options = HandLandmarker.HandLandmarkerOptions.builder()
             .setBaseOptions(baseOptions)
             .setRunningMode(RunningMode.LIVE_STREAM)
-            .setMinHandDetectionConfidence(0.5f)
-            .setNumHands(2)
+            .setMinHandDetectionConfidence(0.5f) // Slightly lower for faster initial lock-on
+            .setMinHandPresenceConfidence(0.5f)
+            .setNumHands(1) // 🔥 OPTIMIZATION 1: Only track 1 hand to double the speed
             .setResultListener { result, _ ->
                 listener.onHandResults(result)
             }
