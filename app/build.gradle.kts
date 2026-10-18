@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.swish"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -32,18 +32,26 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
-    implementation(libs.constraintlayout)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.constraintlayout)
 
-    // CameraX (Wraps Camera2 API securely as required by SRS)
-    val cameraxVersion = "1.3.1"
-    implementation("androidx.camera:camera-core:${cameraxVersion}")
-    implementation("androidx.camera:camera-camera2:${cameraxVersion}")
-    implementation("androidx.camera:camera-lifecycle:${cameraxVersion}")
-    implementation("androidx.camera:camera-view:${cameraxVersion}")
+    // CameraX
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
 
     // Google MediaPipe for Hand Tracking
-    implementation("com.google.mediapipe:tasks-vision:0.10.0")
+    implementation(libs.mediapipe.tasks.vision)
+
+    // Interpreter.
+    implementation(libs.tensorflow.lite)
+
+    // Appium and Selenium for UI Testing
+    testImplementation("io.appium:java-client:9.1.0")
+    testImplementation("org.seleniumhq.selenium:selenium-java:4.17.0")
+    testImplementation("junit:junit:4.13.2")
+
 }

@@ -24,12 +24,17 @@ import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.hypot
-
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 class MainActivity : AppCompatActivity() {
 
     private var smoothedX = 0f
     private var smoothedY = 0f
-    private val emaAlpha = 0.4f 
+    private val emaAlpha = 0.4f
+
+    private lateinit var gestureClassifier: GestureClassifier
 
     private var pointingFrameCount = 0
     private val pointingStartThreshold = 5
@@ -55,7 +60,87 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun startFloatingService() {
+        // 1. Check if the user has granted permission to draw over other apps
+        if (!Settings.canDrawOverlays(this)) {
+            // If not, send them to the settings screen to turn it on
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName")
+            )
+            startActivityForResult(intent, 1234)
+            Toast.makeText(this, "Please grant 'Display over other apps' permission", Toast.LENGTH_LONG).show()
+        } else {
+            // 2. If permission is granted, start the service as a Foreground Service!
+            val serviceIntent = Intent(this, FloatingWidgetService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent)
+            } else {
+                startService(serviceIntent)
+            }
+            Toast.makeText(this, "Overlay Started! Go to your Home Screen.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun checkOverlayPermission() {
+        if (!Settings.canDrawOverlays(this)) {
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName")
+            )
+            startActivityForResult(intent, 1234)
+        } else {
+            // Permission granted! Start your overlay service.
+        }
+    }
+
+    private fun openApp(packageName: String) {
+        // Asks the Android OS if the app is installed and gets the intent to launch it
+        val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+        if (launchIntent != null) {
+            startActivity(launchIntent)
+        } else {
+            Toast.makeText(this, "App not installed on this device!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun executeGestureAction(prediction: String) {
+        when (prediction) {
+            "circle" -> {
+                // Opens Google in the browser
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com"))
+                startActivity(intent)
+            }
+            "heart" -> {
+                // Opens the dialer with Mom's number pre-filled.
+                // Note: We use ACTION_DIAL instead of ACTION_CALL so you don't
+                // have to deal with dangerous call permissions. All you do is hit send!
+                val intent = Intent(Intent.ACTION_DIAL)
+                intent.data = Uri.parse("tel:$HEART_CONTACT_NUMBER")
+                startActivity(intent)
+            }
+            "N" -> {
+                openApp("com.netflix.mediaclient")
+            }
+            "M" -> {
+                openApp("com.spotify.music")
+            }
+            "W" -> {
+                openApp("com.whatsapp")
+            }
+            "Unknown" -> {
+                // Do nothing if the AI is confused
+            }
+            else -> {
+                Toast.makeText(this, "No action assigned for: $prediction", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        gestureClassifier = GestureClassifier(this)
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -163,15 +248,46 @@ class MainActivity : AppCompatActivity() {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+
+        startFloatingService()
     }
 
     private fun processFinishedGesture() {
         if (pathManager.isBufferReady()) {
+
+            // 1. Get the normalized path (This MUST return a List or FloatArray based on your classifier)
             val normalizedData = pathManager.getNormalizedPath()
-            Log.d("Gesture", "Gesture Captured! Points: ${normalizedData.size}")
-            Toast.makeText(this, "Gesture Captured!", Toast.LENGTH_SHORT).show()
+
+            // 2. Pass it to your AI classifier!
+            val prediction = gestureClassifier.classify(normalizedData)
+
+            Log.d("Gesture", "Gesture Captured! AI Prediction: $prediction")
+
+            // 3. Show the prediction and FIRE THE ACTION!
+            runOnUiThread {
+                Toast.makeText(this, "Recognized: $prediction", Toast.LENGTH_SHORT).show()
+
+                // This triggers the intent to open WhatsApp, Spotify, etc.
+                executeGestureAction(prediction)
+            }
+
+        } else {
+            runOnUiThread {
+                Toast.makeText(this, "Gesture too short to recognize", Toast.LENGTH_SHORT).show()
+            }
         }
+
+        // Clear the canvas
+        pathManager.clear()
+        runOnUiThread {
+            overlayView.updatePath(emptyList())
+        }
+
+        // Close the whiteboard overlay so the user can see the app they just opened!
+        finish()
     }
+
+
 
     @OptIn(ExperimentalCamera2Interop::class)
     private fun startCamera() {
@@ -204,7 +320,7 @@ class MainActivity : AppCompatActivity() {
 
             try {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalyzer)
+                cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalyzer)
             } catch(exc: Exception) {
                 Log.e("CameraX", "Use case binding failed", exc)
             }
@@ -220,10 +336,16 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
+        gestureClassifier.close()
     }
 
     // Helper function to calculate the distance between two landmarks
     private fun getDistance(lm1: NormalizedLandmark, lm2: NormalizedLandmark): Float {
         return hypot((lm1.x() - lm2.x()), (lm1.y() - lm2.y()))
+    }
+
+    companion object {
+        // Number pre-filled in the dialer when a "heart" gesture is drawn. Replace with your own.
+        private const val HEART_CONTACT_NUMBER = "0000000000"
     }
 }
