@@ -4,6 +4,14 @@
 
 Hand tracking runs on-device with **Google MediaPipe**, and the drawn shape is classified by a small custom **TensorFlow Lite** model. Nothing is sent to a server.
 
+<p align="center">
+  <a href="https://github.com/samay312006/swish/releases/latest/download/Swish.apk"><img alt="Download APK" src="https://img.shields.io/badge/Download-Swish.apk-3DDC84?style=for-the-badge&logo=android&logoColor=white"></a>
+  &nbsp;
+  <a href="https://github.com/samay312006/swish/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/samay312006/swish?style=for-the-badge"></a>
+</p>
+
+> **Just want to use it?** [Download `Swish.apk`](https://github.com/samay312006/swish/releases/latest/download/Swish.apk) and follow [Install the app](#install-the-app-no-android-studio-needed). No Android Studio, no building.
+
 ---
 
 ## Table of contents
@@ -12,8 +20,9 @@ Hand tracking runs on-device with **Google MediaPipe**, and the drawn shape is c
 - [How it works](#how-it-works)
 - [Gestures](#gestures)
 - [Tech stack](#tech-stack)
+- [Install the app (no Android Studio needed)](#install-the-app-no-android-studio-needed)
 - [Requirements](#requirements)
-- [Setup guide](#setup-guide)
+- [Build from source](#build-from-source)
 - [Using the app](#using-the-app)
 - [Customising](#customising)
 - [Project structure](#project-structure)
@@ -85,7 +94,23 @@ If the target app isn't installed you'll see an "App not installed on this devic
 | Classification | TensorFlow Lite | 2.16.1 |
 | UI | AppCompat, Material Components, ConstraintLayout | 1.6.1 / 1.11.0 / 2.2.1 |
 
+## Install the app (no Android Studio needed)
+
+1. **On your Android phone**, open this link: **[Swish.apk](https://github.com/samay312006/swish/releases/latest/download/Swish.apk)**. You can also find it under the [latest release](https://github.com/samay312006/swish/releases/latest) → *Assets*.
+2. Open the downloaded file. If Android says installs from this source aren't allowed, tap **Settings**, turn on **Allow from this source** for your browser or file manager, and go back.
+3. Tap **Install**. If Google Play Protect warns about an unknown app, tap **More details ▸ Install anyway**. That warning appears for any app that isn't from the Play Store.
+4. Open **Gesture System** (that's the app's name on your home screen) and grant the permissions it asks for. See [step 7](#7-grant-permissions-on-first-launch) for what each one does.
+
+**Requirements:** Android **8.0 or newer** with a front camera. Everything runs on the phone, so no account or internet connection is needed.
+
+**Updating:** download the new `Swish.apk` and install it over the old one. There's no need to uninstall first.
+
+---
+
 ## Requirements
+
+> Only needed if you want to **build Swish yourself**. To just use the app, see [Install the app](#install-the-app-no-android-studio-needed).
+
 
 **Development machine**
 
@@ -100,7 +125,7 @@ If the target app isn't installed you'll see an "App not installed on this devic
 - A **front-facing camera** (declared as required in the manifest).
 - A **physical device is strongly recommended**. Emulators usually have a poor or virtual camera and are too slow for real-time hand tracking.
 
-## Setup guide
+## Build from source
 
 ### 1. Clone the repository
 
