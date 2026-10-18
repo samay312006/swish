@@ -76,7 +76,7 @@ Key details:
 | Shape drawn | Action |
 |-------------|--------|
 | `circle` | Opens https://www.google.com in the browser |
-| `heart`  | Opens the dialer with a pre-filled number (see [Customising](#customising)) |
+| `heart`  | Opens the dialer with your **heart contact** pre-filled (you choose it in the app, see [Heart contact](#heart-contact)) |
 | `N`      | Opens **Netflix** (`com.netflix.mediaclient`) |
 | `M`      | Opens **Spotify** (`com.spotify.music`) |
 | `W`      | Opens **WhatsApp** (`com.whatsapp`) |
@@ -155,15 +155,7 @@ No download is needed. If either file is missing the app can't track hands or cl
 
 ### 4. (Optional) Set the "heart" contact number
 
-Open `app/src/main/java/com/example/swish/MainActivity.kt` and change the placeholder at the bottom of the class:
-
-```kotlin
-companion object {
-    private const val HEART_CONTACT_NUMBER = "0000000000"
-}
-```
-
-The app uses `ACTION_DIAL`, so it only **pre-fills** the dialer. You still press call yourself, and no phone permission is needed.
+No code change is needed. Each user picks their own number inside the app (see [Heart contact](#heart-contact)), and it's stored only on their phone. The number is saved by `HeartContact.kt`, and the dialog lives in `HeartContactActivity.kt`.
 
 ### 5. Prepare your phone
 
@@ -204,6 +196,17 @@ The app's launcher label is **Gesture System**.
 4. **Draw** one of the [supported shapes](#gestures) in the air, smoothly and at a moderate speed.
 5. **Make a fist** to finish. Swish shows `Recognized: <shape>`, runs the bound action and closes the drawing screen.
 6. To draw again from anywhere, tap the **floating bubble**. Drag it to move it around the screen.
+
+### Heart contact
+
+Drawing a **heart** opens your phone's dialer with your chosen person's number already filled in. You still press call yourself, so Swish needs no phone permission.
+
+- **First time:** the first heart you draw asks who it should call. Type a number or tap **Pick contact**, then **Save**, and the dialer opens.
+- **Change it later**, either way:
+  - **Long-press the floating bubble**, or
+  - **long-press the Gesture System app icon** and choose **Heart contact**.
+
+The number never leaves your phone. Picking from contacts only shares the one number you choose with Swish, so no contacts permission is needed.
 
 Tips:
 
@@ -265,10 +268,13 @@ swish/
 │       │   ├── GesturePathManager.kt    # Smoothing, buffering, normalisation
 │       │   ├── GestureClassifier.kt     # Resampling + TFLite inference
 │       │   ├── OverlayView.kt           # Neon trail, particles, landmarks, CSV export
-│       │   └── FloatingWidgetService.kt # Draggable overlay bubble (foreground service)
+│       │   ├── FloatingWidgetService.kt # Draggable overlay bubble (foreground service); long-press = heart contact
+│       │   ├── HeartContact.kt          # Saves the heart-gesture phone number on the device
+│       │   └── HeartContactActivity.kt  # "Heart contact" dialog (type a number or pick a contact)
 │       └── res/
 │           ├── layout/activity_main.xml          # Camera preview + overlay
-│           └── layout/layout_floating_widget.xml # Floating bubble
+│           ├── layout/layout_floating_widget.xml # Floating bubble
+│           └── xml/shortcuts.xml                 # App-icon long-press shortcut → Heart contact
 ├── gradle/libs.versions.toml            # Version catalog
 ├── build.gradle.kts
 └── settings.gradle.kts

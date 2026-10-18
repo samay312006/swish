@@ -15,6 +15,10 @@ import android.app.NotificationManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import android.content.pm.ServiceInfo
+import android.os.Handler
+import android.os.Looper
+import android.view.HapticFeedbackConstants
+import android.view.ViewConfiguration
 
 
 class FloatingWidgetService : Service() {
@@ -75,6 +79,17 @@ class FloatingWidgetService : Service() {
         var initialTouchY = 0f
         var isMoved = false
 
+        // Holding the bubble still opens the "Heart contact" setting.
+        val longPressHandler = Handler(Looper.getMainLooper())
+        var isLongPressed = false
+        val openHeartContact = Runnable {
+            isLongPressed = true
+            captureButton.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            val intent = Intent(this, HeartContactActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+        }
+
         captureButton.setOnTouchListener { view, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -83,6 +98,8 @@ class FloatingWidgetService : Service() {
                     initialTouchX = event.rawX
                     initialTouchY = event.rawY
                     isMoved = false
+                    isLongPressed = false
+                    longPressHandler.postDelayed(openHeartContact, ViewConfiguration.getLongPressTimeout().toLong())
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
@@ -92,6 +109,7 @@ class FloatingWidgetService : Service() {
                     // Only move if they dragged their finger a decent amount
                     if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
                         isMoved = true
+                        longPressHandler.removeCallbacks(openHeartContact)
                         params.x = initialX + dx
                         params.y = initialY + dy
                         windowManager.updateViewLayout(floatingView, params)
@@ -99,10 +117,15 @@ class FloatingWidgetService : Service() {
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    // If they lifted their finger without dragging, trigger a click!
-                    if (!isMoved) {
+                    longPressHandler.removeCallbacks(openHeartContact)
+                    // If they lifted their finger without dragging (or long-pressing), trigger a click!
+                    if (!isMoved && !isLongPressed) {
                         view.performClick()
                     }
+                    true
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    longPressHandler.removeCallbacks(openHeartContact)
                     true
                 }
                 else -> false

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Swish</string>
+    <string name="shortcut_heart_short">Heart contact</string>
+    <string name="shortcut_heart_long">Set heart contact</string>
 </resources>

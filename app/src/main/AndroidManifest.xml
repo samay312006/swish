@@ -44,6 +44,19 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
+
+        <!-- "Heart contact" setting: opened on a first heart, by long-pressing
+             the floating bubble, or from the app icon's long-press shortcut. -->
+        <activity
+            android:theme="@style/Theme.Swish.Translucent"
+            android:name=".HeartContactActivity"
+            android:label="Heart contact"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:exported="true" />
     </application>
 </manifest>

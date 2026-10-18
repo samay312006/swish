@@ -112,12 +112,20 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
             "heart" -> {
-                // Opens the dialer with Mom's number pre-filled.
+                // Opens the dialer with the user's heart contact pre-filled.
                 // Note: We use ACTION_DIAL instead of ACTION_CALL so you don't
                 // have to deal with dangerous call permissions. All you do is hit send!
-                val intent = Intent(Intent.ACTION_DIAL)
-                intent.data = Uri.parse("tel:$HEART_CONTACT_NUMBER")
-                startActivity(intent)
+                val number = HeartContact.get(this)
+                if (number == null) {
+                    // First heart ever: ask who to call, then open the dialer.
+                    val intent = Intent(this, HeartContactActivity::class.java)
+                    intent.putExtra(HeartContactActivity.EXTRA_DIAL_AFTER_SAVE, true)
+                    startActivity(intent)
+                } else {
+                    val intent = Intent(Intent.ACTION_DIAL)
+                    intent.data = Uri.parse("tel:${Uri.encode(number)}")
+                    startActivity(intent)
+                }
             }
             "N" -> {
                 openApp("com.netflix.mediaclient")
@@ -342,10 +350,5 @@ class MainActivity : AppCompatActivity() {
     // Helper function to calculate the distance between two landmarks
     private fun getDistance(lm1: NormalizedLandmark, lm2: NormalizedLandmark): Float {
         return hypot((lm1.x() - lm2.x()), (lm1.y() - lm2.y()))
-    }
-
-    companion object {
-        // Number pre-filled in the dialer when a "heart" gesture is drawn. Replace with your own.
-        private const val HEART_CONTACT_NUMBER = "0000000000"
     }
 }
